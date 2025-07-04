@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple E-commerce Frontend</title>
+    <style>
+      :root {
+        --primary: #2d6cdf;
+        --primary-light: #eaf1fb;
+        --danger: #e74c3c;
+        --success: #27ae60;
+        --bg: #f7f9fa;
+        --card: #fff;
+        --border: #e0e0e0;
+        --radius: 12px;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #222;
+      }
+      .container {
+        max-width: 600px;
+        margin: 2em auto;
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: 0 2px 16px rgba(44, 62, 80, 0.07);
+        padding: 2em 2em 1em 2em;
+      }
+      h1,
+      h2,
+      h3 {
+        text-align: center;
+        font-weight: 600;
+        margin-top: 0;
+      }
+      section {
+        margin-bottom: 2em;
+      }
+      .divider {
+        border-bottom: 1px solid var(--border);
+        margin: 2em 0 1em 0;
+      }
+      input,
+      button,
+      select {
+        margin: 0.3em 0.2em 0.3em 0;
+        padding: 0.5em 0.7em;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        font-size: 1em;
+        outline: none;
+        transition: border 0.2s;
+      }
+      input:focus,
+      select:focus {
+        border: 1.5px solid var(--primary);
+      }
+      button {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #174a9c;
+      }
+      .admin-only {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .hidden {
+        display: none;
+      }
+      .card,
+      .product,
+      .cart-item,
+      .order {
+        background: var(--primary-light);
+        border-radius: var(--radius);
+        box-shadow: 0 1px 4px rgba(44, 62, 80, 0.04);
+        border: 1px solid var(--border);
+        padding: 1em;
+        margin: 1em 0;
+      }
+      .product {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+      }
+      .product-actions {
+        display: flex;
+        gap: 0.5em;
+        flex-wrap: wrap;
+      }
+      .cart-item,
+      .order {
+        font-size: 1em;
+      }
+      .alert {
+        padding: 0.7em 1em;
+        border-radius: 6px;
+        margin: 0.5em 0;
+        font-size: 1em;
+        font-weight: 500;
+      }
+      .alert-success {
+        background: #eafaf1;
+        color: var(--success);
+        border: 1px solid #b7e6c7;
+      }
+      .alert-danger {
+        background: #fbeaea;
+        color: var(--danger);
+        border: 1px solid #f5b7b1;
+      }
+      .center {
+        text-align: center;
+      }
+      @media (max-width: 700px) {
+        .container {
+          max-width: 98vw;
+          padding: 1em 0.5em 0.5em 0.5em;
+        }
+        h1 {
+          font-size: 1.5em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🛒 Simple E-commerce</h1>
+      <section id="auth-section">
+        <h2>Register</h2>
+        <input id="reg-username" placeholder="Username" />
+        <input id="reg-password" type="password" placeholder="Password" />
+        <select id="reg-role">
+          <option value="customer">Customer</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="register()">Register</button>
+        <div id="register-msg"></div>
+        <div class="divider"></div>
+        <h2>Login</h2>
+        <input id="login-username" placeholder="Username" />
+        <input id="login-password" type="password" placeholder="Password" />
+        <button onclick="login()">Login</button>
+        <div id="login-msg"></div>
+      </section>
+
+      <section id="user-section" class="hidden">
+        <h2>
+          Welcome, <span id="user-name"></span> (<span id="user-role"></span>)
+          <button onclick="logout()">Logout</button>
+        </h2>
+        <div class="divider"></div>
+        <section>
+          <h3>Product Listing</h3>
+          <div
+            style="
+              display: flex;
+              gap: 0.5em;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <input id="search-name" placeholder="Search name" />
+            <input id="search-category" placeholder="Search category" />
+            <button onclick="loadProducts(1)">Search</button>
+          </div>
+          <div id="products"></div>
+          <div class="center">
+            <button id="prev-page" onclick="changePage(-1)">Prev</button>
+            <span id="page-info"></span>
+            <button id="next-page" onclick="changePage(1)">Next</button>
+          </div>
+        </section>
+        <section id="admin-section" class="hidden">
+          <h3 class="admin-only">Admin: Manage Products</h3>
+          <div class="card">
+            <input id="prod-name" placeholder="Name" />
+            <input id="prod-price" type="number" placeholder="Price" />
+            <input id="prod-category" placeholder="Category" />
+            <button onclick="addProduct()">Add Product</button>
+            <div id="admin-msg"></div>
+          </div>
+        </section>
+        <div class="divider"></div>
+        <section>
+          <h3>Cart</h3>
+          <div id="cart"></div>
+          <button onclick="placeOrder()">Place Order</button>
+          <div id="cart-msg"></div>
+        </section>
+        <div class="divider"></div>
+        <section>
+          <h3>Orders</h3>
+          <div id="orders"></div>
+        </section>
+      </section>
+    </div>
+    <script>
+      const API = "http://localhost:3000";
+      let token = localStorage.getItem("token") || "";
+      let user = JSON.parse(localStorage.getItem("user") || "null");
+      let currentPage = 1,
+        lastPage = 1,
+        lastSearch = { name: "", category: "" };
+
+      function show(id) {
+        document.getElementById(id).classList.remove("hidden");
+      }
+      function hide(id) {
+        document.getElementById(id).classList.add("hidden");
+      }
+
+      function setUser(u, t) {
+        user = u;
+        token = t;
+        localStorage.setItem("user", JSON.stringify(u));
+        localStorage.setItem("token", t);
+        document.getElementById("user-name").textContent = u.username;
+        document.getElementById("user-role").textContent = u.role;
+        hide("auth-section");
+        show("user-section");
+        if (u.role === "admin") show("admin-section");
+        else hide("admin-section");
+        loadProducts(1);
+        loadCart();
+        loadOrders();
+      }
+      function logout() {
+        user = null;
+        token = "";
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        show("auth-section");
+        hide("user-section");
+      }
+      if (user && token) setUser(user, token);
+      else {
+        show("auth-section");
+        hide("user-section");
+      }
+
+      function showAlert(id, msg, type) {
+        document.getElementById(id).innerHTML = msg
+          ? `<div class='alert alert-${type}'>${msg}</div>`
+          : "";
+      }
+
+      async function register() {
+        const username = document.getElementById("reg-username").value;
+        const password = document.getElementById("reg-password").value;
+        const role = document.getElementById("reg-role").value;
+        const res = await fetch(API + "/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, role }),
+        });
+        const data = await res.json();
+        showAlert(
+          "register-msg",
+          data.message || "",
+          data.message === "User registered" ? "success" : "danger"
+        );
+      }
+      async function login() {
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+        const res = await fetch(API + "/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (data.token) {
+          setUser(
+            {
+              username,
+              role: parseJwt(data.token).role,
+              id: parseJwt(data.token).id,
+            },
+            data.token
+          );
+          showAlert("login-msg", "", "success");
+        } else {
+          showAlert("login-msg", data.message || "Login failed", "danger");
+        }
+      }
+      function parseJwt(token) {
+        try {
+          return JSON.parse(atob(token.split(".")[1]));
+        } catch {
+          return {};
+        }
+      }
+
+      async function loadProducts(page) {
+        currentPage = page;
+        const name = document.getElementById("search-name").value;
+        const category = document.getElementById("search-category").value;
+        lastSearch = { name, category };
+        let url = `${API}/products?page=${page}&limit=5`;
+        if (name) url += `&name=${encodeURIComponent(name)}`;
+        if (category) url += `&category=${encodeURIComponent(category)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        lastPage = Math.ceil(data.total / data.limit) || 1;
+        document.getElementById(
+          "page-info"
+        ).textContent = `Page ${data.page} of ${lastPage}`;
+        document.getElementById("products").innerHTML = data.products
+          .map(
+            (p) => `
+        <div class="product card">
+          <b>${p.name}</b> <span style="color:#888">($${
+              p.price
+            })</span> <span style="color:#888">[${p.category || ""}]</span>
+          <div class="product-actions">
+            <input type="number" min="1" value="1" id="qty-${
+              p.id
+            }" style="width:60px;">
+            <button onclick="addToCart(${p.id})">Add to Cart</button>
+            ${
+              user.role === "admin"
+                ? `<button onclick="deleteProduct(${
+                    p.id
+                  })">Delete</button> <button onclick="showUpdate(${p.id}, '${
+                    p.name
+                  }', ${p.price}, '${p.category || ""}')">Update</button>`
+                : ""
+            }
+          </div>
+        </div>
+      `
+          )
+          .join("");
+      }
+      function changePage(delta) {
+        let next = currentPage + delta;
+        if (next < 1) next = 1;
+        if (next > lastPage) next = lastPage;
+        loadProducts(next);
+      }
+      async function addProduct() {
+        const name = document.getElementById("prod-name").value;
+        const price = parseFloat(document.getElementById("prod-price").value);
+        const category = document.getElementById("prod-category").value;
+        const res = await fetch(API + "/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ name, price, category }),
+        });
+        const data = await res.json();
+        showAlert(
+          "admin-msg",
+          data.message || (data.name ? "Product added!" : "Error"),
+          data.name ? "success" : "danger"
+        );
+        loadProducts(currentPage);
+      }
+      async function deleteProduct(id) {
+        await fetch(API + "/products/" + id, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadProducts(currentPage);
+      }
+      function showUpdate(id, name, price, category) {
+        const n = prompt("Name:", name);
+        if (n === null) return;
+        const p = prompt("Price:", price);
+        if (p === null) return;
+        const c = prompt("Category:", category);
+        if (c === null) return;
+        updateProduct(id, n, p, c);
+      }
+      async function updateProduct(id, name, price, category) {
+        await fetch(API + "/products/" + id, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ name, price, category }),
+        });
+        loadProducts(currentPage);
+      }
+      async function addToCart(productId) {
+        const qty = parseInt(document.getElementById("qty-" + productId).value);
+        const res = await fetch(API + "/cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ productId, quantity: qty }),
+        });
+        loadCart();
+      }
+      async function loadCart() {
+        const res = await fetch(API + "/cart", {
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        document.getElementById("cart").innerHTML = data.length
+          ? data
+              .map(
+                (item) => `
+        <div class="cart-item card">
+          <b>Product ID:</b> ${item.productId}, <b>Qty:</b> ${item.quantity}
+          <button onclick="removeFromCart(${item.productId})">Remove</button>
+        </div>
+      `
+              )
+              .join("")
+          : '<div class="center">Cart is empty.</div>';
+      }
+      async function removeFromCart(productId) {
+        await fetch(API + "/cart/" + productId, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadCart();
+      }
+      async function placeOrder() {
+        const res = await fetch(API + "/orders", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        showAlert(
+          "cart-msg",
+          data.message || (data.id ? "Order placed!" : "Error"),
+          data.id ? "success" : "danger"
+        );
+        loadCart();
+        loadOrders();
+      }
+      async function loadOrders() {
+        const res = await fetch(API + "/orders", {
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        document.getElementById("orders").innerHTML = (Array.isArray(data)
+          ? data
+          : []
+        ).length
+          ? data
+              .map(
+                (order) => `
+        <div class="order card">
+          <b>Order #${order.id}</b> <span style="color:#888">(${
+                  order.timestamp
+                })</span><br>
+          <b>Items:</b> ${order.items
+            .map((i) => `Product ${i.productId} x${i.quantity}`)
+            .join(", ")}
+        </div>
+      `
+              )
+              .join("")
+          : '<div class="center">No orders yet.</div>';
+      }
+    </script>
+  </body>
+</html>
