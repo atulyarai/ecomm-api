@@ -71,7 +71,7 @@ A simple e-commerce backend and frontend built with Node.js and Express, featuri
 ## Notes
 
 - All data is stored in memory. Data resets when the server restarts.
-- To use a real database, replace the in-memory arrays/objects in `server/models/` with database logic.
+- To use a real database,the in-memory arrays/objects in `server/models/` can be replaced wwith database logic.
 
 ## License
 
